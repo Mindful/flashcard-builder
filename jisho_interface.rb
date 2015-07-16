@@ -33,7 +33,7 @@ end
 
 
 def search(word)
-	api_results = open("http://jisho.org/api/#{API_VERSION}/search/words?keyword=#{word}").read
+	api_results = open(URI.encode("http://jisho.org/api/#{API_VERSION}/search/words?keyword=#{word}")).read
 	api_hash = JSON.parse(api_results)
 	if api_hash['meta']['status']!=200
 		#then we have a problem; abort
