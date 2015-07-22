@@ -8,7 +8,11 @@ class AnkiCard
 		@example = example
 	end
 
+	def escape_quotes_in_value(value)
+		value.gsub('"', '\"') if value != nil 
+	end
+
 	def csv_format
-		return "#{@expression},#{@meaning},#{@reading},#{@example}"
+		return "\"#{escape_quotes_in_value(@expression)}\",\"#{escape_quotes_in_value(@meaning)}\",\"#{escape_quotes_in_value(@reading)}\",\"#{escape_quotes_in_value(@example)}\""
 	end
 end

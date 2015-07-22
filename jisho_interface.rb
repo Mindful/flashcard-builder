@@ -15,6 +15,7 @@ API_VERSION = 'v1'
 #I also realized it's probably the best word. It's sense as in "sense of the word", because
 #words used in different senses could have different meanings - and one sense can own many meanings
 class Sense 
+	attr_reader :definitions, :parts_of_speech
 	def initialize(sense_hash)
 		@part_of_speech = sense_hash['parts_of_speech'][0] || nil
 		@definitions = sense_hash['english_definitions']
@@ -22,10 +23,16 @@ class Sense
 end
 
 class Word
+	attr_reader :common, :content, :reading, :senses, :sensitive
 	def initialize(word_hash)
 		@common = word_hash['is_common']
 		@content = word_hash['japanese'][0]['word']
 		@reading = word_hash['japanese'][0]['reading']
+		if @content == nil and @reading != nil
+			@content = @reading
+			@reading = nil
+			#This is the case where the word is not (ever) written with Kanji
+		end
 		@senses = word_hash['senses'].map {|x| Sense.new(x)}
 		@sensitive = word_hash['tags'].include? 'Sensitive'
 	end
