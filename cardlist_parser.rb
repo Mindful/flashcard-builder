@@ -2,13 +2,15 @@ require 'csv'
 require './anki_interface.rb'
 require './jisho_interface.rb'
 
+LINE_SEPARATOR = "--------------------------------"
+
 def jisho_word_to_anki_card(word)
 	#(expression, meaning, reading, example)
 	count = 0
 	meanings = word.senses.map do |sense|
 		count +=1
 		if word.senses.length > 1
-			count.to_s + ". " sense.definitions.join(", ")
+			count.to_s + ". " + sense.definitions.join(", ")
 		else
 			sense.definitions.join(", ")
 		end
@@ -29,12 +31,14 @@ def main
 
 	CSV.foreach("#{filename}") do |row|
  		row.each do |word|
+ 			puts LINE_SEPARATOR
  			dictionary_result = search(word)[0]
  			puts dictionary_result.inspect
  			dictionary_result = jisho_word_to_anki_card(dictionary_result)
  			output_file.write(dictionary_result.csv_format + "\n")
  		end
 	end
+	puts LINE_SEPARATOR
 end
 
 main

@@ -1,6 +1,18 @@
 require 'open-uri'
 require 'json'
 
+MOJINIZER_DISABLED = false
+begin
+  require 'mojinizer' 
+rescue LoadError
+	MOJINIZER_DISABLED = true
+end
+
+if MOJINIZER_DISABLED
+	puts "Could not get mojinizer; make sure bundle is installed. Runs without mojinizer cannot check for duplicate romaji definitions"
+end
+
+
 API_VERSION = 'v1'
 
 #closest thing to documentation is here 
@@ -35,6 +47,16 @@ class Word
 		end
 		@senses = word_hash['senses'].map {|x| Sense.new(x)}
 		@sensitive = word_hash['tags'].include? 'Sensitive'
+
+		#Weed out pesky definitions that include the word's romaji
+		romaji = @reading ? @reading.romaji : @content 
+		@senses.delete_if do |sense|  
+			delete = sense.definitions.any?{ |d| d.casecmp(romaji)==0 }
+			if delete
+				puts "Removing sense #{sense.inspect} from word #{self.inspect} because of romaji duplication \"#{romaji}\""
+			end
+			delete
+		end
 	end
 end
 
