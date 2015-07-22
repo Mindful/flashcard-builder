@@ -3,6 +3,7 @@ require './anki_interface.rb'
 require './jisho_interface.rb'
 
 LINE_SEPARATOR = "--------------------------------"
+DEFINITION_SEPARATOR = ";"
 
 def jisho_word_to_anki_card(word)
 	#(expression, meaning, reading, example)
@@ -10,9 +11,9 @@ def jisho_word_to_anki_card(word)
 	meanings = word.senses.map do |sense|
 		count +=1
 		if word.senses.length > 1
-			count.to_s + ". " + sense.definitions.join(", ")
+			count.to_s + ". " + sense.definitions.join("#{DEFINITION_SEPARATOR} ")
 		else
-			sense.definitions.join(", ")
+			sense.definitions.join("#{DEFINITION_SEPARATOR} ")
 		end
 	end
 	meanings = meanings.join("\n")
