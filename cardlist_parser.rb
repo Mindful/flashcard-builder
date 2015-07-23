@@ -8,7 +8,9 @@ DEFINITION_SEPARATOR = ";"
 def jisho_word_to_anki_card(word)
 	#(expression, meaning, reading, example)
 	count = 0
+	parts_of_speech = []
 	meanings = word.senses.map do |sense|
+		sense.parts_of_speech.each {|part| parts_of_speech << part}
 		count +=1
 		if word.senses.length > 1
 			count.to_s + ". " + sense.definitions.join("#{DEFINITION_SEPARATOR} ")
@@ -17,7 +19,7 @@ def jisho_word_to_anki_card(word)
 		end
 	end
 	meanings = meanings.join("\n")
-	card = AnkiCard.new(word.content, meanings, word.reading, "")
+	card = AnkiCard.new(parts_of_speech, word.content, meanings, word.reading, "")
 
 end
 

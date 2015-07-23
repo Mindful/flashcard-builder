@@ -29,7 +29,7 @@ API_VERSION = 'v1'
 class Sense 
 	attr_reader :definitions, :parts_of_speech
 	def initialize(sense_hash)
-		@part_of_speech = sense_hash['parts_of_speech'][0] || nil
+		@parts_of_speech = sense_hash['parts_of_speech']
 		@definitions = sense_hash['english_definitions']
 	end
 end
