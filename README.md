@@ -25,3 +25,8 @@ Importing to Anki
 From Anki's _desktop client_, go to File->Import. The rest is pretty self explanatory, just make sure that the fields are set up properly. 
 
 
+Known Bugs
+==
+Definitions with quotes in them cause problems.  There's code to escape quotes insdie the strings, but it doesn't seem to be working properly. 
+
+
