@@ -27,6 +27,6 @@ From Anki's _desktop client_, go to File->Import. The rest is pretty self explan
 
 Known Bugs
 ==
-Definitions with quotes in them cause problems.  There's code to escape quotes insdie the strings, but it doesn't seem to be working properly. 
+Definitions with quotes in them cause problems.  There's code to escape quotes inside the strings, but it doesn't seem to be working properly. 
 
 
