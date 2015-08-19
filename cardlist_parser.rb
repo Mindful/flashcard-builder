@@ -9,6 +9,9 @@ def jisho_word_to_anki_card(word)
 	#(expression, meaning, reading, example)
 	count = 0
 	parts_of_speech = []
+    if word == nil
+    	return nil
+    end
 	meanings = word.senses.map do |sense|
 		sense.parts_of_speech.each {|part| parts_of_speech << part}
 		count +=1
@@ -38,7 +41,12 @@ def main
  			dictionary_result = search(word)[0]
  			puts dictionary_result.inspect
  			dictionary_result = jisho_word_to_anki_card(dictionary_result)
- 			output_file.write(dictionary_result.csv_format + "\n")
+ 			if dictionary_result == nil
+ 				#dictionary_result = "<NO RESULT FOR #{word}>"
+ 				puts "<NO RESULT FOR #{word}>, skipping"
+ 			else
+ 				output_file.write(dictionary_result.csv_format + "\n")
+ 			end
  		end
 	end
 	puts LINE_SEPARATOR

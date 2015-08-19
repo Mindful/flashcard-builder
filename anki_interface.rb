@@ -5,6 +5,10 @@ require 'mojinizer'
 ADD_END_TO_NA_ADJECTIVES = true
 #array.any?{ |s| s.casecmp(mystr)==0 } is case insensitive include?
 
+def is_kanji?(char)
+	return char.kanji? || char == "々"
+end
+
 class AnkiCard
 	attr_reader :expression, :meaning, :reading, :example, :parts_of_speech
 	def initialize(parts_of_speech, expression, meaning, reading, example)
@@ -37,7 +41,7 @@ class AnkiCard
 			(0...display_expression.size).each do |i| #three dots to exclude final value
 				puts "Start round #{i} with string #{reading_expression}"
 				c = display_expression[i]
-				if !c.kanji? && last_kanji == i-1
+				if !is_kanji?(c) && last_kanji == i-1
 					puts "Work on #{c} at #{i} as non-kanji"
 					#Start skipping here, end wherever the last duplicate is,
 					#and then place the previous characters in their own set
@@ -71,7 +75,7 @@ class AnkiCard
 					reading_expression += skip_string #Add back the kana just once
 					reading_completion = skip_end
 					break if i > display_expression.size #ruby won't do this automatically for us, because ".each"
-				elsif !c.kanji?
+				elsif !is_kanji?(c)
 					puts "Work on #{c} as non-skip non-kanji"
 					reading_expression += c
 				else
