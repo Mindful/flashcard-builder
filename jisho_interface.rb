@@ -1,16 +1,6 @@
 require 'open-uri'
 require 'json'
-
-MOJINIZER_DISABLED = false
-begin
-  require 'mojinizer' 
-rescue LoadError
-	MOJINIZER_DISABLED = true
-end
-
-if MOJINIZER_DISABLED
-	puts "Could not get mojinizer; make sure bundle is installed. Runs without mojinizer cannot check for duplicate romaji definitions"
-end
+require 'mojinizer' 
 
 
 API_VERSION = 'v1'
