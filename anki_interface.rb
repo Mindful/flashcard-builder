@@ -19,6 +19,9 @@ class AnkiCard
 		value.gsub('"', '\"') if value != nil 
 	end
 
+	#Honestly this method is a mess and it leaves me with an uneasy feeling that
+	#the algorithm I intended to write is slightly different from the one I wrote
+	#Sorry
 	def csv_format
 		display_expression = @expression
 
@@ -39,24 +42,33 @@ class AnkiCard
 					#Start skipping here, end wherever the last duplicate is,
 					#and then place the previous characters in their own set
 					#of brackets and keep going and set i += (skip_end-skip_start)
+					skip_string = ""
 					skip_end = skip_start = @reading.index(c)
+					#TODO: if there is duplicate kana, could this index be wrong? if so
+					#we can find the index in a substring starting from reading_completion
+					#and then adjust it by adding the index + reading_completion
+
 					display_skip_counter = i
 					(skip_start...@reading.size).each do |j|
 						read_c = @reading[j]
 						if read_c != display_expression[display_skip_counter]
 							break
 						else
-							puts "Skip +1 for #{read_c}"
+							puts "Skip #{read_c}"
+							skip_string += read_c
 						end
 						display_skip_counter +=1	
 						skip_end +=1
 					end
+					#TODO: Before we finalize a strip, do a brief check to make sure
+					#the next set of characters in the reading isn't identical,
+					#or we could be in a situation where we are stripping furigana
+					#identical to the okurigana
 					puts "i before change #{i}, skip_end #{skip_end}, skip_start #{skip_start}"
 					i += (skip_end - skip_start)+1
 					puts "i after change #{i}"
-					puts "Skip string = #{@reading[skip_start..skip_end]}"
 					reading_expression += "[#{@reading[reading_completion..(skip_start-1)]}]"
-					reading_expression += @reading[skip_start..skip_end] #Add back the kana just once
+					reading_expression += skip_string #Add back the kana just once
 					reading_completion = skip_end
 					break if i > display_expression.size #ruby won't do this automatically for us, because ".each"
 				elsif !c.kanji?
@@ -65,6 +77,10 @@ class AnkiCard
 				else
 					puts "Work on #{c} at #{i} as kanji"
 					reading_expression += c
+					if i == (display_expression.size - 1)
+						puts "also as last kanji"
+						reading_expression += "[#{@reading[reading_completion..-1]}]"
+					end
 					last_kanji = i
 				end
 			end
@@ -74,29 +90,22 @@ class AnkiCard
 		puts "Finish with string #{reading_expression}"
 
 
-				#Before we finalize a strip, do a brief check to make sure
-				#the next set of characters in the reading isn't identical,
-				#or we could be in a situation where we are stripping furigana
-				#identical to the okurigana
 
 		if parts_of_speech.any?{|s| s.casecmp("transitive verb")==0 }
 			display_expression = "を "+display_expression
+			reading_expression = "を "+reading_expression
 		elsif parts_of_speech.any?{|s| s.casecmp("intransitive verb")==0 }
 			display_expression = "が "+display_expression
+			reading_expression = "が "+reading_expression
 		end
 
 		display_expression = escape_quotes_in_value(display_expression)
-
-
-
-		#TODO: Strip duplicate characters out out furigana so only kanji readings remain;
-		# do this iteratively to support compound words with kanji breaks like 差し支え
 
 		if ADD_END_TO_NA_ADJECTIVES && parts_of_speech.any?{ |s| s.casecmp("na-adjective")==0 }
 			display_expression += "な"
 			reading_expression += "な"
 		end
 		reading != nil ? "[#{escape_quotes_in_value(@reading)}]" : ""
-		return "\"#{display_expression}\",\"#{escape_quotes_in_value(@meaning)}\",\"#{display_expression}#{reading_expression}\",\"#{escape_quotes_in_value(@example)}\""
+		return "\"#{display_expression}\",\"#{escape_quotes_in_value(@meaning)}\",\"#{reading_expression}\",\"#{escape_quotes_in_value(@example)}\""
 	end
 end
