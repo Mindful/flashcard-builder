@@ -1,6 +1,7 @@
 # encoding: utf-8
 #Expression, Meaning, Reading, Example
 require 'mojinizer'
+require 'colorize'
 
 ADD_END_TO_NA_ADJECTIVES = true
 #array.any?{ |s| s.casecmp(mystr)==0 } is case insensitive include?
@@ -11,12 +12,18 @@ end
 
 class AnkiCard
 	attr_reader :expression, :meaning, :reading, :example, :parts_of_speech
+	@@problem_words = []
+
 	def initialize(parts_of_speech, expression, meaning, reading, example)
 		@expression = expression
 		@meaning = meaning
 		@reading = reading
 		@example = example
 		@parts_of_speech = parts_of_speech
+	end
+
+	def self.get_problem_words
+		@@problem_words
 	end
 
 	def escape_quotes_in_value(value)
@@ -43,9 +50,12 @@ class AnkiCard
 	#that can properly make sense of something like this:
 	#expression = "き気期き気きき木き帰"
 	#reading = "きききききききききき"
+
+	#TODO: We could at least attempt to do better in cases where there is leftover reading, by
+	#rerunning the algorithm preferring the second instance of 
 	def self.furigana(expression, reading)
 		#In cases where there's no need
-		return string if reading == nil 
+		return expression if reading == nil 
 
 		#So we don't mess with input
 		expression = expression.clone
@@ -84,6 +94,14 @@ class AnkiCard
 				#or the end if there is no kana string... is the best guess we can make for
 				#the reading of the previous kanji
 				reading_substring_end = kana_strings.empty? ? reading.size : reading.index(kana_strings[0])
+				if kana_strings.size == 1 && kanji_strings.size == 0 && 
+					#If the kana is at the end of the word in expression, it must also be at the end in reading
+					#This is just a special case where we an infer a little bit more information, but it also ends
+					#up saving us from a lot of the most common cases of okurigana/yomikata kana overlap.
+					reading_substring_end = reading.size - kana_strings[0].size
+				end
+	
+
 				reading_substring = reading[0...reading_substring_end]
 				result += reading_substring + "]"
 				reading[reading_substring] = '' #Indexing with strings just finds the first instance of the string
@@ -97,15 +115,24 @@ class AnkiCard
 			puts "Remaining reading: <#{prev_reading}> -> <#{reading}>"
 			counter += 1
 		end
+		puts "Final result: <#{result}>"
+
+		#I'm not sure this can ever actually happen anymore with our explicit check for processing 
+		#the final set of okurigana, but there's no harm in checking since it's the only thing we
+		#can do to detect problems anyway
+		if reading.size > 0
+			puts ("WARNING: Processing of <#{expression}> ended without emptying the reading string." +
+			" This is likely caused by duplicate kana in the yomikata and okurigana, and " +
+			"typically means the word must be processed manually").red
+			@@problem_words << expression
+		end
 		return result
 	end
 
 	def csv_format
 		#@expression, @reading
 		display_expression = @expression.clone
-		reading_expression = furigana(@expression, @reading)
-
-
+		reading_expression = AnkiCard.furigana(@expression, @reading)
 
 		if parts_of_speech.any?{|s| s.casecmp("transitive verb")==0 }
 			display_expression = "を "+display_expression

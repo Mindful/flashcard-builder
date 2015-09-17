@@ -1,4 +1,5 @@
 require 'csv'
+require 'colorize'
 require './anki_interface.rb'
 require './jisho_interface.rb'
 
@@ -42,12 +43,16 @@ def main
  			puts dictionary_result.inspect
  			dictionary_result = jisho_word_to_anki_card(dictionary_result)
  			if dictionary_result == nil
- 				#dictionary_result = "<NO RESULT FOR #{word}>"
- 				puts "<NO RESULT FOR #{word}>, skipping"
+ 				puts "WARNING: No result for  <#{word}>, skipping".red
  			else
  				output_file.write(dictionary_result.csv_format + "\n")
  			end
  		end
+ 		if AnkiCard.get_problem_words.size > 0
+ 			puts "Detected likely problems in the processing of words #{AnkiCard.get_problem_words.inspect}" +
+ 			". It is recommended that you omit these words from the input and process them manually."
+ 		end
+
 	end
 	puts LINE_SEPARATOR
 end
