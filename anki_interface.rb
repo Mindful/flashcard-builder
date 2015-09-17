@@ -23,75 +23,87 @@ class AnkiCard
 		value.gsub('"', '\"') if value != nil 
 	end
 
-	#Honestly this method is a mess and it leaves me with an uneasy feeling that
-	#the algorithm I intended to write is slightly different from the one I wrote
-	#Sorry
-	def csv_format
-		display_expression = @expression
-
-		#Intentional spaces in strings after the particle so that furigana doesn't
-		#spread out over them as well
-
-		skip_start = 0
-		skip_end = 0
-		last_kanji = 0
-		reading_completion = 0
-		reading_expression = ""	
-		if @reading != nil
-			(0...display_expression.size).each do |i| #three dots to exclude final value
-				puts "Start round #{i} with string #{reading_expression}"
-				c = display_expression[i]
-				if !is_kanji?(c) && last_kanji == i-1
-					puts "Work on #{c} at #{i} as non-kanji"
-					#Start skipping here, end wherever the last duplicate is,
-					#and then place the previous characters in their own set
-					#of brackets and keep going and set i += (skip_end-skip_start)
-					skip_string = ""
-					skip_end = skip_start = @reading.index(c)
-					#TODO: if there is duplicate kana, could this index be wrong? if so
-					#we can find the index in a substring starting from reading_completion
-					#and then adjust it by adding the index + reading_completion
-
-					display_skip_counter = i
-					(skip_start...@reading.size).each do |j|
-						read_c = @reading[j]
-						if read_c != display_expression[display_skip_counter]
-							break
-						else
-							puts "Skip #{read_c}"
-							skip_string += read_c
-						end
-						display_skip_counter +=1	
-						skip_end +=1
-					end
-					#TODO: Before we finalize a strip, do a brief check to make sure
-					#the next set of characters in the reading isn't identical,
-					#or we could be in a situation where we are stripping furigana
-					#identical to the okurigana
-					puts "i before change #{i}, skip_end #{skip_end}, skip_start #{skip_start}"
-					i += (skip_end - skip_start)+1
-					puts "i after change #{i}"
-					reading_expression += "[#{@reading[reading_completion..(skip_start-1)]}]"
-					reading_expression += skip_string #Add back the kana just once
-					reading_completion = skip_end
-					break if i > display_expression.size #ruby won't do this automatically for us, because ".each"
-				elsif !is_kanji?(c)
-					puts "Work on #{c} as non-skip non-kanji"
-					reading_expression += c
-				else
-					puts "Work on #{c} at #{i} as kanji"
-					reading_expression += c
-					if i == (display_expression.size - 1)
-						puts "also as last kanji"
-						reading_expression += "[#{@reading[reading_completion..-1]}]"
-					end
-					last_kanji = i
-				end
-			end
-		else
-			reading_expression = display_expression
+	def self.same_type_substring(expression, counter, kanji_substring)
+		substring_start = counter
+		while counter < expression.size && is_kanji?(expression[counter]) == kanji_substring 
+			print "Process #{is_kanji?(expression[counter]) ? "kanji" : "kana"} " + 
+			"chain member <#{expression[counter]}>, "
+			counter +=1
 		end
-		puts "Finish with string #{reading_expression}"
+		puts "Final chain: <#{expression[substring_start...counter]}>"
+		return expression[substring_start...counter] #Three dots to exclude last value
+	end
+
+
+	#After spending a pretty substantial amount of time on this, I'm convinced that writing a
+	#generalizable algorithm for assigning yomikata and okurigana generalizably from strings of
+	#the reading of the entire word is simply not possible, because the variability in kanji 
+	#readings means there is no good way to differentiate same-character okurigana and yomikata
+	#In short, the code here should work for just about every real word, but I can find no algorithm
+	#that can properly make sense of something like this:
+	#expression = "き気期き気きき木き帰"
+	#reading = "きききききききききき"
+	def self.furigana(expression, reading)
+		#In cases where there's no need
+		return string if reading == nil 
+
+		#So we don't mess with input
+		expression = expression.clone
+		reading = reading.clone
+
+		result = ""
+		kana_strings = []
+		kanji_strings = []
+
+		counter = 0
+		while counter < expression.size
+			kanji = is_kanji?(expression[counter])
+			substring = same_type_substring(expression, counter, kanji)
+			counter += substring.size
+			if kanji
+				kanji_strings << substring
+			else
+				kana_strings << substring
+			end
+		end
+		puts "Start with kana string array #{kana_strings.inspect}"
+		puts "Start with kanji string array #{kanji_strings.inspect}"
+
+		#Use this boolean to adjust the pattern so we process in the correct order
+		first_char_kanji = is_kanji?(expression[0])
+
+		counter = 0
+		#Add the kanji/reading and okurigana strings onto the result in alternating order
+		while !kana_strings.empty? || !kanji_strings.empty?
+			prev_reading = reading.clone
+			if counter.even? == first_char_kanji && !kanji_strings.empty?
+				kanji_append = kanji_strings.shift 
+				result += kanji_append + "["
+
+				#all the characters between the beginning of reading and the next kana string,
+				#or the end if there is no kana string... is the best guess we can make for
+				#the reading of the previous kanji
+				reading_substring_end = kana_strings.empty? ? reading.size : reading.index(kana_strings[0])
+				reading_substring = reading[0...reading_substring_end]
+				result += reading_substring + "]"
+				reading[reading_substring] = '' #Indexing with strings just finds the first instance of the string
+				puts "Append kanji <#{kanji_append}> with reading <#{reading_substring}>"
+			elsif !kana_strings.empty?
+				kana_append = kana_strings.shift
+				result += kana_append
+				reading[0...kana_append.size] = ''
+				puts "Append kana (okurigana) <#{kana_append}>"
+			end
+			puts "Remaining reading: <#{prev_reading}> -> <#{reading}>"
+			counter += 1
+		end
+		return result
+	end
+
+	def csv_format
+		#@expression, @reading
+		display_expression = @expression.clone
+		reading_expression = furigana(@expression, @reading)
 
 
 
