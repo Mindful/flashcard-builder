@@ -88,7 +88,7 @@ class AnkiCard
 			prev_reading = reading.clone
 			if counter.even? == first_char_kanji && !kanji_strings.empty?
 				kanji_append = kanji_strings.shift 
-				result += kanji_append + "["
+				result += " "+kanji_append + "["
 
 				#all the characters between the beginning of reading and the next kana string,
 				#or the end if there is no kana string... is the best guess we can make for
