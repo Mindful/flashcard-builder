@@ -43,7 +43,7 @@ class Word
 		@senses.delete_if do |sense|  
 			delete = sense.definitions.any?{ |d| d.casecmp(romaji)==0 }
 			if delete
-				puts "Removing sense #{sense.inspect} from word #{self.inspect} because of romaji duplication \"#{romaji}\""
+				debug "Removing sense #{sense.inspect} from word #{self.inspect} because of romaji duplication \"#{romaji}\""
 			end
 			delete
 		end
@@ -56,8 +56,20 @@ def search(word)
 	api_hash = JSON.parse(api_results)
 	if api_hash['meta']['status']!=200
 		#then we have a problem; abort
-		puts "Error, status response not 200"
+		error "Status response not 200"
 		exit
+	end
+	words = api_hash['data'].map {|x| x['japanese'][0]['word']}
+	if words.size > 0 && words[0] != word
+		warning "First result from jisho.org not equal to search term"
+		found = false
+		words.each do |x|
+			found = true if x == word
+		end
+		if !found
+			error "jisho.org search result did not include search term <#{word}>"
+			exit
+		end
 	end
 	results_data = api_hash['data'].map {|x| Word.new(x)}
 	return results_data

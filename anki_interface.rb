@@ -1,7 +1,7 @@
 # encoding: utf-8
 #Expression, Meaning, Reading, Example
 require 'mojinizer'
-require 'colorize'
+require './output.rb'
 
 ADD_END_TO_NA_ADJECTIVES = true
 #array.any?{ |s| s.casecmp(mystr)==0 } is case insensitive include?
@@ -33,11 +33,11 @@ class AnkiCard
 	def self.same_type_substring(expression, counter, kanji_substring)
 		substring_start = counter
 		while counter < expression.size && is_kanji?(expression[counter]) == kanji_substring 
-			print "Process #{is_kanji?(expression[counter]) ? "kanji" : "kana"} " + 
-			"chain member <#{expression[counter]}>, "
+			debug "Process #{is_kanji?(expression[counter]) ? "kanji" : "kana"} " + 
+			"chain member <#{expression[counter]}> "
 			counter +=1
 		end
-		puts "Final chain: <#{expression[substring_start...counter]}>"
+		debug "Final chain: <#{expression[substring_start...counter]}>"
 		return expression[substring_start...counter] #Three dots to exclude last value
 	end
 
@@ -76,8 +76,8 @@ class AnkiCard
 				kana_strings << substring
 			end
 		end
-		puts "Start with kana string array #{kana_strings.inspect}"
-		puts "Start with kanji string array #{kanji_strings.inspect}"
+		debug "Start with kana string array #{kana_strings.inspect}"
+		debug "Start with kanji string array #{kanji_strings.inspect}"
 
 		#Use this boolean to adjust the pattern so we process in the correct order
 		first_char_kanji = is_kanji?(expression[0])
@@ -105,25 +105,25 @@ class AnkiCard
 				reading_substring = reading[0...reading_substring_end]
 				result += reading_substring + "]"
 				reading[reading_substring] = '' #Indexing with strings just finds the first instance of the string
-				puts "Append kanji <#{kanji_append}> with reading <#{reading_substring}>"
+				debug "Append kanji <#{kanji_append}> with reading <#{reading_substring}>"
 			elsif !kana_strings.empty?
 				kana_append = kana_strings.shift
 				result += kana_append
 				reading[0...kana_append.size] = ''
-				puts "Append kana (okurigana) <#{kana_append}>"
+				debug "Append kana (okurigana) <#{kana_append}>"
 			end
-			puts "Remaining reading: <#{prev_reading}> -> <#{reading}>"
+			debug "Remaining reading: <#{prev_reading}> -> <#{reading}>"
 			counter += 1
 		end
-		puts "Final result: <#{result}>"
+		debug "Final result: <#{result}>"
 
 		#I'm not sure this can ever actually happen anymore with our explicit check for processing 
 		#the final set of okurigana, but there's no harm in checking since it's the only thing we
 		#can do to detect problems anyway
 		if reading.size > 0
-			puts ("WARNING: Processing of <#{expression}> ended without emptying the reading string." +
+			warning "Processing of <#{expression}> ended without emptying the reading string." +
 			" This is likely caused by duplicate kana in the yomikata and okurigana, and " +
-			"typically means the word must be processed manually").red
+			"typically means the word must be processed manually"
 			@@problem_words << expression
 		end
 		return result

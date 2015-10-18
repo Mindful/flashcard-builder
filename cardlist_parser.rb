@@ -1,7 +1,7 @@
 require 'csv'
-require 'colorize'
 require './anki_interface.rb'
 require './jisho_interface.rb'
+require './output.rb'
 
 LINE_SEPARATOR = "--------------------------------"
 DEFINITION_SEPARATOR = ";"
@@ -30,7 +30,7 @@ end
 def main
 	filename = ARGV[0]
 	if !filename
-		puts "Please pass in filename as argument"
+		error "Please pass in filename as argument"
 		exit
 	end
 
@@ -40,17 +40,19 @@ def main
  		row.each do |word|
  			puts LINE_SEPARATOR
  			dictionary_result = search(word)[0]
- 			puts dictionary_result.inspect
+ 			puts "-->".light_blue+dictionary_result.inspect
  			dictionary_result = jisho_word_to_anki_card(dictionary_result)
  			if dictionary_result == nil
- 				puts "WARNING: No result for  <#{word}>, skipping".red
+ 				warning "No result for <#{word}>, skipping"
  			else
  				output_file.write(dictionary_result.csv_format + "\n")
+ 				puts "-->".light_blue+dictionary_result.inspect
  			end
  		end
  		if AnkiCard.get_problem_words.size > 0
- 			puts "Detected likely problems in the processing of words #{AnkiCard.get_problem_words.inspect}" +
- 			". It is recommended that you omit these words from the input and process them manually."
+ 			warning "Detected likely problems in the processing of words "+
+ 			"#{AnkiCard.get_problem_words.inspect} . It is recommended that you "+
+ 			"omit these words from the input and process them manually."
  		end
 
 	end
