@@ -49,12 +49,16 @@ def main
  				puts "-->".light_blue+dictionary_result.inspect
  			end
  		end
+  		if JishoWord.get_problem_words.size > 0
+ 			warning "Detected possible problems in the fetching of words "+
+ 			"#{JishoWord.get_problem_words.inspect}. It is recommended that you "+
+ 			"inspect the output for these words, and process them manually if required."
+ 		end
  		if AnkiCard.get_problem_words.size > 0
  			warning "Detected likely problems in the processing of words "+
- 			"#{AnkiCard.get_problem_words.inspect} . It is recommended that you "+
+ 			"#{AnkiCard.get_problem_words.inspect}. It is recommended that you "+
  			"omit these words from the input and process them manually."
  		end
-
 	end
 	puts LINE_SEPARATOR
 end

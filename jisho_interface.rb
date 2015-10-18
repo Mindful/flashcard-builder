@@ -24,8 +24,14 @@ class Sense
 	end
 end
 
-class Word
+class JishoWord
 	attr_reader :common, :content, :reading, :senses, :sensitive
+	@@problem_words = []
+
+	def self.get_problem_words
+		@@problem_words
+	end
+
 	def initialize(word_hash)
 		@common = word_hash['is_common']
 		@content = word_hash['japanese'][0]['word']
@@ -50,27 +56,33 @@ class Word
 	end
 end
 
+def compare_word(word, possibilities)
+	possibilities.each do |w|
+		return true if w == word
+	end
+	return false
+end
 
 def search(word)
 	api_results = open(URI.encode("http://jisho.org/api/#{API_VERSION}/search/words?keyword=#{word}")).read
 	api_hash = JSON.parse(api_results)
 	if api_hash['meta']['status']!=200
-		#then we have a problem; abort
 		error "Status response not 200"
 		exit
 	end
-	words = api_hash['data'].map {|x| x['japanese'][0]['word']}
-	if words.size > 0 && words[0] != word
-		warning "First result from jisho.org not equal to search term"
-		found = false
-		words.each do |x|
-			found = true if x == word
-		end
+	words = api_hash['data'].map {|x| [x['japanese'][0]['word'], x['japanese'][0]['reading']]}
+	if words.size > 0 && !compare_word(word, words[0])
+		found = words.index {|x| compare_word(word, x)}
 		if !found
-			error "jisho.org search result did not include search term <#{word}>"
-			exit
+			warn_string = "jisho.org search result did not include an exact match for "+
+			"search term <#{word}> in content or reading"
+		else 
+			warn_string = "jisho.org <#{word}> is at index #{found} in search result, and only" +
+			"the result at index 0 is used"
 		end
+		warning warn_string + ". The output for this word may not be correct"
+		JishoWord.get_problem_words << word
 	end
-	results_data = api_hash['data'].map {|x| Word.new(x)}
+	results_data = api_hash['data'].map {|x| JishoWord.new(x)}
 	return results_data
 end
