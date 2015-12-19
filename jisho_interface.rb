@@ -20,6 +20,11 @@ class Sense
 	attr_reader :definitions, :parts_of_speech
 	def initialize(sense_hash)
 		@parts_of_speech = sense_hash['parts_of_speech']
+		#Apparently there are words on jisho.org that have bad data under their parts of speech
+		#and return null list entries, which causes problems unless we remove them. See:
+		#http://jisho.org/search/%E8%99%AB%E3%81%8C%E3%81%84%E3%81%84\
+		bad_data = @parts_of_speech.compact!
+		debug "Bad speech part detected and removed" if bad_data
 		@definitions = sense_hash['english_definitions']
 	end
 end

@@ -133,7 +133,6 @@ class AnkiCard
 		#@expression, @reading
 		display_expression = @expression.clone
 		reading_expression = AnkiCard.furigana(@expression, @reading)
-
 		if parts_of_speech.any?{|s| s.casecmp("transitive verb")==0 }
 			display_expression = "を "+display_expression
 			reading_expression = "を "+reading_expression
