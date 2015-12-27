@@ -83,7 +83,7 @@ def search(word)
 			"search term <#{word}> in content or reading"
 		else 
 			warn_string = "jisho.org <#{word}> is at index #{found} in search result, and only" +
-			"the result at index 0 is used"
+			" the result at index 0 is used"
 		end
 		warning warn_string + ". The output for this word may not be correct"
 		JishoWord.get_problem_words << word
