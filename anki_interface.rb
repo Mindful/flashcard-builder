@@ -27,7 +27,7 @@ class AnkiCard
 	end
 
 	def escape_quotes_in_value(value)
-		value.gsub('"', '\"') if value != nil 
+		value.gsub('"', "'") if value != nil 
 	end
 
 	def self.same_type_substring(expression, counter, kanji_substring)
