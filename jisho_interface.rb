@@ -46,7 +46,7 @@ class JishoWord
 			@reading = nil
 			#This is the case where the word is not (ever) written with Kanji
 		end
-		@senses = word_hash['senses'].map {|x| Sense.new(x)}
+		@senses = word_hash['senses'].map {|x| Sense.new(x)}.select {|x| !x.definitions.nil? }
 		@sensitive = word_hash['tags'].include? 'Sensitive'
 
 		#Weed out pesky definitions that include the word's romaji
