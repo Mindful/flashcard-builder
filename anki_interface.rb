@@ -103,6 +103,14 @@ class AnkiCard
 	
 
 				reading_substring = reading[0...reading_substring_end]
+				if reading_substring.length < kanji_append.length #If we have fewer reading kana than kanji, something is probably wrong
+					new_substring_end = reading.index(kana_strings[0], reading_substring_end+1)
+					if new_substring_end #We found the same character(s) further along, we should use those
+						reading_substring = reading[0...new_substring_end]
+					end
+				end
+
+
 				result += reading_substring + "]"
 				reading[reading_substring] = '' #Indexing with strings just finds the first instance of the string
 				debug "Append kanji <#{kanji_append}> with reading <#{reading_substring}>"
