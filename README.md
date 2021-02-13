@@ -1,3 +1,7 @@
+**Deprecated**: please see the expanded rewrite of this project, [cardbuilder](https://github.com/Mindful/cardbuilder).
+
+
+
 # flashcard-builder
 
 Installation
